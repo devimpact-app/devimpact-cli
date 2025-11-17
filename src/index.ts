@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import { runCommand } from "./utils";
-import { linkCliToAccount } from "./api";
+import { DEVIMPACT_API_BASE, linkCliToAccount } from "./api";
 import { runBasicSync } from "./sync";
+import { saveConfig } from "./config";
 
 const args = process.argv.slice(2);
 const [command, ...rest] = args;
@@ -44,17 +45,16 @@ Examples:
 }
 
 async function handleInit(args: string[]) {
-  const linkFlagIndex = args.indexOf("--link");
-  const linkCode = linkFlagIndex >= 0 ? args[linkFlagIndex + 1] : undefined;
+  const cliTokenIndex = args.indexOf("--cli-token");
+  const cliToken = cliTokenIndex >= 0 ? args[cliTokenIndex + 1] : undefined;
 
-  if (!linkCode) {
-    console.error("Error: --link CODE is required\n");
+  if (!cliToken) {
+    console.error("Error: --cli-token CODE is required\n");
     printHelp();
     process.exit(1);
   }
 
   console.log("🔗 Linking this machine with DevImpact…");
-  console.log(`   link code: ${linkCode}`);
 
   try {
     const { stdout } = await runCommand("gh --version");
@@ -100,7 +100,7 @@ async function handleInit(args: string[]) {
 
   try {
     const resp = await linkCliToAccount({
-      linkCode,
+      cliToken,
       githubLogin,
     });
 
@@ -115,6 +115,12 @@ async function handleInit(args: string[]) {
       console.log(`   Tenant: ${resp.tenantId}`);
     }
 
+    saveConfig({
+      apiBaseUrl: DEVIMPACT_API_BASE,
+      cliToken,
+      githubLogin,
+    });
+
     console.log(
       "\nNext step: run `devimpact sync-basic` to sync recent GitHub activity."
     );
@@ -126,8 +132,6 @@ async function handleInit(args: string[]) {
 }
 
 async function handleSyncBasic(_args: string[]) {
-  const explainOnly = args.includes("--explain") || args.includes("--dry-run");
-
   const repos: string[] = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--repo" && args[i + 1]) {
@@ -144,7 +148,7 @@ async function handleSyncBasic(_args: string[]) {
     );
   }
 
-  await runBasicSync({ explainOnly, repos });
+  await runBasicSync({ repos });
 }
 
 main().catch((err) => {

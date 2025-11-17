@@ -1,8 +1,11 @@
-const DEVIMPACT_API_BASE =
+import { loadConfig } from "./config";
+import { CliStatus } from "./types";
+
+export const DEVIMPACT_API_BASE =
   process.env.DEVIMPACT_API_BASE ?? "http://localhost:3000";
 
 export type LinkCliRequest = {
-  linkCode: string;
+  cliToken: string;
   githubLogin: string;
 };
 
@@ -31,4 +34,67 @@ export async function linkCliToAccount(
   }
 
   return (await res.json()) as LinkCliResponse;
+}
+
+export async function getCliStatus(): Promise<CliStatus> {
+  const cfg = loadConfig();
+  if (!cfg) {
+    console.error(
+      "❌ No DevImpact CLI config found. Run `devimpact init` first."
+    );
+    process.exit(1);
+  }
+
+  const res = await fetch(`${DEVIMPACT_API_BASE}/api/cli/status`, {
+    headers: {
+      "x-devimpact-cli-token": cfg.cliToken,
+      "content-type": "application/json",
+    },
+  });
+
+  if (res.status === 401) {
+    throw new Error(
+      "CLI token was rejected by the server. Try regenerating a token in DevImpact and re-running `devimpact init`."
+    );
+  }
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(
+      `Failed to fetch CLI status (${res.status}). ${text || ""}`.trim()
+    );
+  }
+
+  const { data } = await res.json();
+  return data as CliStatus;
+}
+
+export async function postCliSync(payload: any) {
+  const cfg = loadConfig();
+  if (!cfg) {
+    console.error(
+      "❌ No DevImpact CLI config found. Run `devimpact init` first."
+    );
+    process.exit(1);
+  }
+
+  const res = await fetch(`${cfg.apiBaseUrl}/api/cli/sync`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-DevImpact-CLI-Token": cfg.cliToken,
+    },
+    body: JSON.stringify({
+      githubLogin: cfg.githubLogin,
+      ...payload,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("❌ Sync failed:", res.status, text);
+    process.exit(1);
+  }
+
+  return res.json();
 }

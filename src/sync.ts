@@ -1,6 +1,6 @@
+import { getCliStatus, postCliSync } from "./api";
 import { hydratePullRequest } from "./gh/hydratePr";
 import { searchAuthoredPrs, searchReviewedPrs } from "./gh/search";
-import { runCommand } from "./utils";
 
 export type SyncMode = "basic";
 
@@ -10,7 +10,6 @@ export type GhEndpointTemplate = {
   example: string;
 };
 
-// Central registry of gh api endpoints we use.
 export const GH_ENDPOINTS: GhEndpointTemplate[] = [
   {
     id: "search_issues_prs",
@@ -77,12 +76,11 @@ export async function syncRepoBasic(params: {
 }
 
 export type BasicSyncOptions = {
-  explainOnly?: boolean;
   repos: string[];
 };
 
 export async function runBasicSync(options: BasicSyncOptions) {
-  const { explainOnly = false, repos } = options;
+  const { repos } = options;
 
   console.log("DevImpact sync-basic");
 
@@ -100,26 +98,19 @@ export async function runBasicSync(options: BasicSyncOptions) {
     process.exit(1);
   }
 
+  const status = await getCliStatus();
+  if (!status.recommendedStartISO) {
+    throw new Error("Server did not provide a recommended start time.");
+  }
+
+  const startISO = status.recommendedStartISO!;
+  const endISO = new Date().toISOString();
+
   console.log(
-    explainOnly
-      ? "Running in explain-only mode. No GitHub API calls will be made.\n"
-      : "This will use GitHub CLI (gh) to call a small set of REST endpoints.\n"
+    `Syncing DevImpact data from ${startISO} to ${endISO} for repos: ${repos.join(
+      ", "
+    )}`
   );
-
-  console.log("Planned GitHub API usage via `gh api`:\n");
-  for (const endpoint of GH_ENDPOINTS) {
-    console.log(`• ${endpoint.description}`);
-    console.log(`  Example: ${endpoint.example}\n`);
-  }
-
-  if (explainOnly) {
-    console.log(
-      "No data was fetched or sent to DevImpact. This is just a preview of the integration."
-    );
-    return;
-  }
-
-  // TODO: get since ISO and github login
 
   // const allHydrated: any[] = [];
 
@@ -141,5 +132,9 @@ export async function runBasicSync(options: BasicSyncOptions) {
   //   `✅ Sync-basic complete. Total hydrated PRs: ${allHydrated.length}`
   // );
 
-  // TODO: send to backend
+  // await postCliSync({
+  //   // sinceISO,
+  //   repos,
+  //   // prs: allHydrated,
+  // });
 }
