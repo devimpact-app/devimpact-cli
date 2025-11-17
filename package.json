@@ -1,6 +1,6 @@
 {
   "name": "@devimpact/cli",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "index.js",
   "bin": {
     "devimpact": "dist/index.js"
@@ -11,11 +11,18 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "description": "",
   "dependencies": {
     "@types/node": "^24.10.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
-  }
+  },
+  "files": [
+    "dist/",
+    "bin/",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ]
 }

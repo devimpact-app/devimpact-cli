@@ -14,7 +14,7 @@ async function main() {
       await handleInit(rest);
       break;
 
-    case "sync-basic":
+    case "sync":
       await handleSyncBasic(rest);
       break;
 
@@ -35,12 +35,12 @@ function printHelp() {
 DevImpact CLI
 
 Usage:
-  devimpact init --link CODE     Link this machine to your DevImpact account
-  devimpact sync-basic           Sync recent GitHub activity (stub)
+  devimpact init --cli_token <YOUR_CLI_TOKEN>     Link this machine to your DevImpact account
+  devimpact sync                                  Sync recent GitHub activity
 
 Examples:
-  devimpact init --link ALPHA2025
-  devimpact sync-basic
+  devimpact init --cli_token TEST_TOKEN
+  devimpact sync --repo myorg/service-api
 `);
 }
 
@@ -151,7 +151,7 @@ async function handleSyncBasic(_args: string[]) {
   if (!effectiveRepos.length) {
     console.error(
       "No repositories configured. Use --repo owner/repo to specify at least one repository.\n" +
-        "Example: devimpact sync-basic --repo myorg/service-api\n" +
+        "Example: devimpact sync --repo myorg/service-api\n" +
         "Once you've run that, you can omit --repo next time to use the saved list."
     );
     process.exit(1);

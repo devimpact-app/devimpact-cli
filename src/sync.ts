@@ -101,7 +101,7 @@ export type BasicSyncOptions = {
 export async function runBasicSync(options: BasicSyncOptions) {
   const { repos, githubLogin } = options;
 
-  console.log("DevImpact sync-basic");
+  console.log("DevImpact sync");
 
   const status = await getCliStatus();
   if (!status.recommendedStartISO) {
