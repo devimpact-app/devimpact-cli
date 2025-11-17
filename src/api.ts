@@ -1,4 +1,6 @@
 import { loadConfig } from "./config";
+import { HydratedPr } from "./gh/hydratePr";
+import { RepoMetadata } from "./gh/repos";
 import { CliStatus } from "./types";
 
 export const DEVIMPACT_API_BASE =
@@ -69,7 +71,16 @@ export async function getCliStatus(): Promise<CliStatus> {
   return data as CliStatus;
 }
 
-export async function postCliSync(payload: any) {
+export type RepoSyncPayload = {
+  repo: RepoMetadata;
+  pulls: HydratedPr[];
+  syncWindow: {
+    startISO: string;
+    endISO: string;
+  };
+};
+
+export async function postCliSync(payload: RepoSyncPayload) {
   const cfg = loadConfig();
   if (!cfg) {
     console.error(

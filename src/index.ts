@@ -3,7 +3,7 @@
 import { runCommand } from "./utils";
 import { DEVIMPACT_API_BASE, linkCliToAccount } from "./api";
 import { runBasicSync } from "./sync";
-import { saveConfig } from "./config";
+import { loadConfig, saveConfig } from "./config";
 
 const args = process.argv.slice(2);
 const [command, ...rest] = args;
@@ -119,6 +119,7 @@ async function handleInit(args: string[]) {
       apiBaseUrl: DEVIMPACT_API_BASE,
       cliToken,
       githubLogin,
+      repos: [],
     });
 
     console.log(
@@ -132,23 +133,39 @@ async function handleInit(args: string[]) {
 }
 
 async function handleSyncBasic(_args: string[]) {
-  const repos: string[] = [];
+  const cliRepos: string[] = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--repo" && args[i + 1]) {
-      repos.push(args[i + 1]);
-      i++; // skip next
+      cliRepos.push(args[i + 1]);
+      i++;
     }
   }
 
-  if (!repos.length && process.env.DEVIMPACT_REPOS) {
-    repos.push(
-      ...process.env.DEVIMPACT_REPOS.split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-    );
+  let config = loadConfig();
+  if (!config) {
+    console.error("Need to run `devimpact init` first to set up the CLI.");
+    process.exit(1);
   }
 
-  await runBasicSync({ repos });
+  let effectiveRepos: string[] = cliRepos.length ? cliRepos : config.repos;
+  if (!effectiveRepos.length) {
+    console.error(
+      "No repositories configured. Use --repo owner/repo to specify at least one repository.\n" +
+        "Example: devimpact sync-basic --repo myorg/service-api\n" +
+        "Once you've run that, you can omit --repo next time to use the saved list."
+    );
+    process.exit(1);
+  }
+
+  if (!config.repos.length) {
+    config.repos = effectiveRepos;
+    saveConfig(config);
+  }
+
+  await runBasicSync({
+    repos: effectiveRepos,
+    githubLogin: config.githubLogin,
+  });
 }
 
 main().catch((err) => {

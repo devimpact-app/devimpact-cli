@@ -6,6 +6,7 @@ export type DevImpactConfig = {
   apiBaseUrl: string;
   cliToken: string;
   githubLogin: string;
+  repos: string[];
 };
 
 const CONFIG_PATH = path.join(os.homedir(), ".devimpact", "config.json");

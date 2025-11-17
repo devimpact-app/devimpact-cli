@@ -1,4 +1,4 @@
-import { runCommand } from "../utils";
+import { runCommand, runCommandArray } from "../utils";
 
 export async function ghJson(
   args: string[],
@@ -8,6 +8,6 @@ export async function ghJson(
 
   const full = opts?.paginate ? [...base, "--paginate"] : base;
 
-  const { stdout } = await runCommand(`gh ${full.join(" ")}`);
+  const { stdout } = await runCommandArray("gh", full);
   return JSON.parse(stdout);
 }

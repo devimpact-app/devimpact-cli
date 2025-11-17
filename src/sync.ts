@@ -1,5 +1,6 @@
 import { getCliStatus, postCliSync } from "./api";
-import { hydratePullRequest } from "./gh/hydratePr";
+import { HydratedPr, hydratePullRequest } from "./gh/hydratePr";
+import { getRepository, RepoMetadata } from "./gh/repos";
 import { searchAuthoredPrs, searchReviewedPrs } from "./gh/search";
 
 export type SyncMode = "basic";
@@ -50,15 +51,29 @@ export const GH_ENDPOINTS: GhEndpointTemplate[] = [
 ];
 
 export async function syncRepoBasic(params: {
-  repo: string;
+  repoName: string;
   githubLogin: string;
-  sinceISO: string;
-}) {
-  const { repo, githubLogin, sinceISO } = params;
+  startISO: string;
+}): Promise<{
+  hydratedPrs: HydratedPr[];
+  repo: RepoMetadata;
+}> {
+  const { repoName, githubLogin, startISO } = params;
+
+  let repoMeta: RepoMetadata;
+  try {
+    repoMeta = await getRepository(repoName);
+  } catch (err) {
+    console.error(
+      `There was an issue fetching repository metadata for ${repoName}: ${err}.\n` +
+        "Are you sure you have access?"
+    );
+    process.exit(1);
+  }
 
   const [authored, reviewed] = await Promise.all([
-    searchAuthoredPrs({ repo, author: githubLogin, sinceISO }),
-    searchReviewedPrs({ repo, reviewer: githubLogin, sinceISO }),
+    searchAuthoredPrs({ repo: repoName, author: githubLogin, startISO }),
+    searchReviewedPrs({ repo: repoName, reviewer: githubLogin, startISO }),
   ]);
 
   const byNumber = new Map<number, (typeof authored)[number]>();
@@ -69,34 +84,24 @@ export async function syncRepoBasic(params: {
   const uniquePrs = Array.from(byNumber.values());
 
   const hydrated = await Promise.all(
-    uniquePrs.map((pr) => hydratePullRequest(repo, pr))
+    uniquePrs.map((pr) => hydratePullRequest(repoName, pr))
   );
 
-  return hydrated;
+  return {
+    hydratedPrs: hydrated,
+    repo: repoMeta,
+  };
 }
 
 export type BasicSyncOptions = {
   repos: string[];
+  githubLogin: string;
 };
 
 export async function runBasicSync(options: BasicSyncOptions) {
-  const { repos } = options;
+  const { repos, githubLogin } = options;
 
   console.log("DevImpact sync-basic");
-
-  if (!repos.length) {
-    console.error(
-      "❌ No repos specified.\n\n" +
-        "Currently, DevImpact only syncs repos you explicitly list.\n" +
-        "Try:\n" +
-        "  devimpact sync-basic --repo myorg/service-api\n" +
-        "or:\n" +
-        "  devimpact sync-basic --repo myorg/service-api --repo myorg/frontend\n\n" +
-        "If you want to keep repos in your config, you can export in your config (.bashrc/.zshrc or similar).\n" +
-        "  export DEVIMPACT_REPOS='myorg/service-api,myorg/frontend'\n"
-    );
-    process.exit(1);
-  }
 
   const status = await getCliStatus();
   if (!status.recommendedStartISO) {
@@ -112,29 +117,27 @@ export async function runBasicSync(options: BasicSyncOptions) {
     )}`
   );
 
-  // const allHydrated: any[] = [];
+  for (const repoName of repos) {
+    console.log(`Syncing repo: ${repoName}`);
 
-  // for (const repo of repos) {
-  //   console.log(`▶ Syncing repo: ${repo}`);
+    const { hydratedPrs, repo } = await syncRepoBasic({
+      repoName: repoName,
+      githubLogin,
+      startISO,
+    });
 
-  //   const hydratedPrs = await syncRepoBasic({
-  //     repo,
-  //     githubLogin,
-  //     sinceISO,
-  //   });
+    console.log(`  ✓ Hydrated ${hydratedPrs.length} PRs from ${repoName}\n`);
 
-  //   console.log(`  ✓ Hydrated ${hydratedPrs.length} PRs from ${repo}\n`);
+    console.log(`Pushing metadata from ${repoName} to DevImpact backend...`);
 
-  //   allHydrated.push(...hydratedPrs);
-  // }
-
-  // console.log(
-  //   `✅ Sync-basic complete. Total hydrated PRs: ${allHydrated.length}`
-  // );
-
-  // await postCliSync({
-  //   // sinceISO,
-  //   repos,
-  //   // prs: allHydrated,
-  // });
+    // Push to api
+    await postCliSync({
+      syncWindow: {
+        startISO,
+        endISO,
+      },
+      repo,
+      pulls: hydratedPrs,
+    });
+  }
 }

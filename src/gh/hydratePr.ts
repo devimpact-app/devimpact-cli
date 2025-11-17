@@ -15,8 +15,7 @@ import {
 } from "./types";
 
 export type HydratedPr = {
-  core: GitHubSearchPullRequest;
-  repo: string;
+  pr: GitHubSearchPullRequest;
   commits: GitHubPRCommit[];
   files: GitHubPRFile[];
   reviews: GitHubReview[];
@@ -40,8 +39,7 @@ export async function hydratePullRequest(
     ]);
 
   return {
-    core: pr,
-    repo,
+    pr,
     commits,
     files,
     reviews,

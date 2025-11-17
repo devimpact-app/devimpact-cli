@@ -4,9 +4,9 @@ import { GitHubSearchPullRequest } from "./types";
 export async function searchAuthoredPrs(params: {
   repo: string;
   author: string;
-  sinceISO: string;
+  startISO: string;
 }): Promise<GitHubSearchPullRequest[]> {
-  const q = `is:pr author:${params.author} repo:${params.repo} updated:>=${params.sinceISO}`;
+  const q = `is:pr author:${params.author} repo:${params.repo} updated:>=${params.startISO}`;
 
   const res = await ghJson([
     "/search/issues",
@@ -28,9 +28,9 @@ export async function searchAuthoredPrs(params: {
 export async function searchReviewedPrs(params: {
   repo: string;
   reviewer: string;
-  sinceISO: string;
+  startISO: string;
 }): Promise<GitHubSearchPullRequest[]> {
-  const q = `is:pr -author:${params.reviewer} reviewed-by:${params.reviewer} repo:${params.repo} updated:>=${params.sinceISO}`;
+  const q = `is:pr -author:${params.reviewer} reviewed-by:${params.reviewer} repo:${params.repo} updated:>=${params.startISO}`;
 
   const res = await ghJson([
     "/search/issues",
