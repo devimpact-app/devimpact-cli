@@ -26,8 +26,15 @@ export interface GitHubTimelineEvent {
     login: string;
     id: number;
   };
-  // For review_request_removed:
-  // (same structure)
+  requested_team?: {
+    id: number;
+    name: string;
+    slug: string;
+    organization?: {
+      login: string;
+      id: number;
+    };
+  } | null;
 }
 
 /**

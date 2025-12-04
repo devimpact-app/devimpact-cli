@@ -18,6 +18,10 @@ async function main() {
       await handleSyncBasic(rest);
       break;
 
+    case "explain":
+      printExplain();
+      break;
+
     case "help":
     case undefined:
       printHelp();
@@ -37,11 +41,39 @@ DevImpact CLI
 Usage:
   devimpact init --cli_token <YOUR_CLI_TOKEN>     Link this machine to your DevImpact account
   devimpact sync                                  Sync recent GitHub activity
+  devimpact explain                               See what data DevImpact accesses
 
 Examples:
   devimpact init --cli_token TEST_TOKEN
   devimpact sync --repo myorg/service-api
 `);
+}
+
+function printExplain() {
+  console.log(`
+    DevImpact CLI
+
+    When you run 'devimpact sync':
+
+    - Calls: gh api /search/issues … (list authored/reviewed PRs)
+    - Calls: gh api /repos/{owner}/{repo}/pulls/{number}/commits
+    - Calls: gh api /repos/{owner}/{repo}/pulls/{number}/files
+    - Calls: gh api /repos/{owner}/{repo}/pulls/{number}/reviews
+    - Calls: gh api /repos/{owner}/{repo}/pulls/{number}/comments
+    - Calls: gh api /repos/{owner}/{repo}/issues/{number}/timeline
+
+    We send to DevImpact backend:
+
+    - PR metadata (number, title, sanitized body, timestamps, author login)
+    - File metadata (filename, additions/deletions)
+    - Commit metadata (sha, author login, timestamp, html_url)
+    - Review & comment bodies after sanitization
+
+    We never send:
+    - code or diff contents
+    - commit messages
+    - your GitHub PAT (we use gh auth only)
+  `);
 }
 
 async function handleInit(args: string[]) {

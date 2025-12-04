@@ -56,12 +56,19 @@ If you use the same repos regularly, the CLI will remember them.
 
 The CLI uses your local GitHub CLI authentication, so DevImpact never sees your PAT or OAuth token.
 
-The CLI only accesses:
-• The repositories you explicitly pass via --repo.
-• Pull requests you authored or reviewed.
-• Standard PR metadata: commits, file metadata (no code contents), reviews, review comments, and timeline events.
+When you run `devimpact sync`:
+
+1. It uses your existing `gh auth` session to call `gh api` on your machine.
+2. It only accesses the repos you explicitly pass
+3. It fetches metadata about your PRs, reviews, commits, and files
+   for the repos you specify.
+4. It strips diffs, commit messages, and code blocks from data.
+5. It sends a **sanitized JSON payload** to the DevImpact backend
+   to power your personal dashboard.
 
 No other GitHub data is accessed.
+
+👉 For a detailed list of APIs and fields, see [DATA & SECURITY](./SECURITY.md).
 
 You can inspect or delete your local DevImpact config at:
 
