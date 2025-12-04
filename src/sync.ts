@@ -3,7 +3,7 @@ import { HydratedPr, hydratePullRequest } from "./gh/hydratePr";
 import { getRepository, RepoMetadata } from "./gh/repos";
 import { searchAuthoredPrs, searchReviewedPrs } from "./gh/search";
 
-export type SyncMode = "basic";
+const MAX_PRS_PER_BATCH = 25;
 
 export type GhEndpointTemplate = {
   id: string;
@@ -49,6 +49,14 @@ export const GH_ENDPOINTS: GhEndpointTemplate[] = [
       "gh api repos/OWNER/REPO/issues/PR_NUMBER/events -X GET --paginate",
   },
 ];
+
+function chunkHydratedPrs(hydratedPrs: HydratedPr[]): HydratedPr[][] {
+  const chunks: HydratedPr[][] = [];
+  for (let i = 0; i < hydratedPrs.length; i += MAX_PRS_PER_BATCH) {
+    chunks.push(hydratedPrs.slice(i, i + MAX_PRS_PER_BATCH));
+  }
+  return chunks;
+}
 
 export async function syncRepoBasic(params: {
   repoName: string;
@@ -126,18 +134,23 @@ export async function runBasicSync(options: BasicSyncOptions) {
       startISO,
     });
 
-    console.log(`  ✓ Hydrated ${hydratedPrs.length} PRs from ${repoName}\n`);
+    console.log(`Hydrated ${hydratedPrs.length} PRs from ${repoName}\n`);
+    if (hydratedPrs.length > 0) {
+      console.log(`Pushing metadata from ${repoName} to DevImpact backend...`);
 
-    console.log(`Pushing metadata from ${repoName} to DevImpact backend...`);
+      const batches = chunkHydratedPrs(hydratedPrs);
 
-    // Push to api
-    await postCliSync({
-      syncWindow: {
-        startISO,
-        endISO,
-      },
-      repo,
-      pulls: hydratedPrs,
-    });
+      for (let i = 0; i < batches.length; i++) {
+        const pullsBatch = batches[i];
+        const isLastBatch = i === batches.length - 1;
+
+        await postCliSync({
+          syncWindow: { startISO, endISO },
+          repo,
+          pulls: pullsBatch,
+          isLastBatch,
+        });
+      }
+    }
   }
 }

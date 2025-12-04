@@ -78,6 +78,7 @@ export type RepoSyncPayload = {
     startISO: string;
     endISO: string;
   };
+  isLastBatch: boolean;
 };
 
 export async function postCliSync(payload: RepoSyncPayload) {
