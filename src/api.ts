@@ -4,7 +4,7 @@ import { RepoMetadata } from "./gh/repos";
 import { CliStatus } from "./types";
 
 export const DEVIMPACT_API_BASE =
-  process.env.DEVIMPACT_API_BASE ?? "https://devimpact.app";
+  process.env.DEVIMPACT_API_BASE || "https://devimpact.app";
 
 export type LinkCliRequest = {
   cliToken: string;

@@ -155,7 +155,7 @@ async function handleInit(args: string[]) {
     });
 
     console.log(
-      "\nNext step: run `devimpact sync-basic` to sync recent GitHub activity."
+      "\nNext step: run `devimpact sync` to sync recent GitHub activity."
     );
   } catch (err) {
     console.error("❌ Failed to link with DevImpact backend:");
