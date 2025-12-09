@@ -5,10 +5,16 @@ import { DEVIMPACT_API_BASE, linkCliToAccount } from "./api";
 import { runBasicSync } from "./sync";
 import { loadConfig, saveConfig } from "./config";
 
+const pkg = require("../package.json") as { version: string };
+
 const args = process.argv.slice(2);
 const [command, ...rest] = args;
 
 async function main() {
+  if (command === "--version" || command === "-v") {
+    console.log(`devimpact CLI v${pkg.version}`);
+    process.exit(0);
+  }
   switch (command) {
     case "init":
       await handleInit(rest);
@@ -42,6 +48,7 @@ Usage:
   devimpact init --cli_token <YOUR_CLI_TOKEN>     Link this machine to your DevImpact account
   devimpact sync                                  Sync recent GitHub activity
   devimpact explain                               See what data DevImpact accesses
+  devimpact --version
 
 Examples:
   devimpact init --cli_token TEST_TOKEN
