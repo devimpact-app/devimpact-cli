@@ -47,12 +47,15 @@ export async function getCliStatus(): Promise<CliStatus> {
     process.exit(1);
   }
 
-  const res = await fetch(`${DEVIMPACT_API_BASE}/api/cli/status`, {
-    headers: {
-      "x-devimpact-cli-token": cfg.cliToken,
-      "content-type": "application/json",
-    },
-  });
+  const res = await fetch(
+    `${DEVIMPACT_API_BASE}/api/cli/status?includeRepoNames=true`,
+    {
+      headers: {
+        "x-devimpact-cli-token": cfg.cliToken,
+        "content-type": "application/json",
+      },
+    }
+  );
 
   if (res.status === 401) {
     throw new Error(
@@ -105,6 +108,36 @@ export async function postCliSync(payload: RepoSyncPayload) {
   if (!res.ok) {
     const text = await res.text();
     console.error("❌ Sync failed:", res.status, text);
+    process.exit(1);
+  }
+
+  return res.json();
+}
+
+export async function postAvailableRepos(repos: RepoMetadata[]) {
+  const cfg = loadConfig();
+  if (!cfg) {
+    console.error(
+      "❌ No DevImpact CLI config found. Run `devimpact init` first."
+    );
+    process.exit(1);
+  }
+
+  const res = await fetch(`${cfg.apiBaseUrl}/api/cli/repos`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-DevImpact-CLI-Token": cfg.cliToken,
+    },
+    body: JSON.stringify({
+      githubLogin: cfg.githubLogin,
+      repos,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("❌ Upload available repos failed:", res.status, text);
     process.exit(1);
   }
 
