@@ -45,3 +45,40 @@ export async function getRepository(repo: string): Promise<RepoMetadata> {
     pushedAt: data.pushed_at ?? null,
   };
 }
+
+export async function getRepositories(): Promise<RepoMetadata[]> {
+  const data = await ghJson(
+    [
+      "/user/repos",
+      "-X",
+      "GET",
+      "-f",
+      "affiliation=owner,collaborator,organization_member",
+      "-f",
+      "per_page=100",
+    ],
+    {
+      paginate: true,
+    }
+  );
+
+  return data
+    .filter((r: any) => !!r.permissions?.push || !!r.permissions?.pull)
+    .map((r: any) => ({
+      id: r.id,
+      ownerLogin: r.owner?.login ?? "",
+      name: r.name,
+      fullName: r.full_name,
+      htmlUrl: r.html_url,
+      private: !!r.private,
+      fork: !!r.fork,
+      archived: !!r.archived,
+      visibility:
+        (r.visibility as RepoMetadata["visibility"]) ??
+        (r.private ? "private" : "public"),
+      defaultBranch: r.default_branch ?? "main",
+      primaryLanguage: r.language ?? null,
+      createdAt: r.created_at ?? null,
+      pushedAt: r.pushed_at ?? null,
+    }));
+}

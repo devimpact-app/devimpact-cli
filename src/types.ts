@@ -11,5 +11,8 @@ export type CliStatus = {
   cliLinkedAt: string | null;
   lastSyncAt: string | null;
   hasActivity: boolean;
+  selectedRepos: number;
+  selectedRepoNames?: string[];
+  availableReposCount: number;
   recommendedStartISO: string;
 };

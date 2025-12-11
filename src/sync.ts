@@ -11,6 +11,11 @@ export type GhEndpointTemplate = {
   example: string;
 };
 
+export type Batch = {
+  repo: RepoMetadata;
+  pulls: HydratedPr[];
+};
+
 export const GH_ENDPOINTS: GhEndpointTemplate[] = [
   {
     id: "search_issues_prs",
@@ -102,12 +107,12 @@ export async function syncRepoBasic(params: {
 }
 
 export type BasicSyncOptions = {
-  repos: string[];
+  repoOverrides?: string[];
   githubLogin: string;
 };
 
 export async function runBasicSync(options: BasicSyncOptions) {
-  const { repos, githubLogin } = options;
+  const { repoOverrides, githubLogin } = options;
 
   console.log("DevImpact sync");
 
@@ -119,12 +124,38 @@ export async function runBasicSync(options: BasicSyncOptions) {
   const startISO = status.recommendedStartISO!;
   const endISO = new Date().toISOString();
 
+  // Decide on repos to sync
+  let repos: string[] = [];
+  if (repoOverrides) {
+    repos = repoOverrides;
+  } else {
+    repos = status.selectedRepoNames ?? [];
+  }
+
+  if (!repos.length) {
+    console.error(
+      "No repositories have been selected yet.\n" +
+        "\n" +
+        "→ First, visit your DevImpact repo selection page:\n" +
+        "     https://devimpact.app/onboarding/repos\n" +
+        "   Choose the repos where you do most of your work, then try syncing again.\n" +
+        "\n" +
+        "If you prefer to sync a specific repo directly, you can bypass selection with:\n" +
+        "   devimpact sync --repo owner/repo\n" +
+        "\n" +
+        "Example:\n" +
+        "   devimpact sync --repo myorg/service-api\n"
+    );
+    process.exit(1);
+  }
+
   console.log(
     `Syncing DevImpact data from ${startISO} to ${endISO} for repos: ${repos.join(
       ", "
     )}`
   );
 
+  let pendingBatch: Batch | null = null;
   for (const repoName of repos) {
     console.log(`Syncing repo: ${repoName}`);
 
@@ -142,15 +173,35 @@ export async function runBasicSync(options: BasicSyncOptions) {
 
       for (let i = 0; i < batches.length; i++) {
         const pullsBatch = batches[i];
-        const isLastBatch = i === batches.length - 1;
+        if (!pendingBatch) {
+          // first batch overall
+          pendingBatch = { repo, pulls: pullsBatch };
+        } else {
+          // we already have a pending batch: flush it *without* last flag,
+          // then replace it with the current one
+          await postCliSync({
+            syncWindow: { startISO, endISO },
+            repo: pendingBatch.repo,
+            pulls: pendingBatch.pulls,
+            isLastBatch: false,
+          });
 
-        await postCliSync({
-          syncWindow: { startISO, endISO },
-          repo,
-          pulls: pullsBatch,
-          isLastBatch,
-        });
+          pendingBatch = { repo, pulls: pullsBatch };
+        }
       }
     }
+  }
+
+  if (pendingBatch) {
+    await postCliSync({
+      syncWindow: { startISO, endISO },
+      repo: pendingBatch.repo,
+      pulls: pendingBatch.pulls,
+      isLastBatch: true,
+    });
+  } else {
+    console.log(
+      "No PR activity found in the selected repos for this window; nothing to sync."
+    );
   }
 }
