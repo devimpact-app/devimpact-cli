@@ -27,7 +27,7 @@ async function main() {
     case "init":
       await handleInit(rest);
       break;
-    case "update-repos":
+    case "discover-repos":
       await handleRepoDiscovery();
       break;
     case "sync":
@@ -56,6 +56,7 @@ DevImpact CLI
 Usage:
   devimpact init --cli_token <YOUR_CLI_TOKEN>     Link this machine to your DevImpact account
   devimpact sync                                  Sync recent GitHub activity
+  devimpact discover-repos                        Discover repos you have access to, so you can select in your DevImpact account
   devimpact explain                               See what data DevImpact accesses
   devimpact --version
 
@@ -243,7 +244,7 @@ async function handleRepoDiscovery() {
         "⚠️ No writable repositories were found via gh. You can still pass --repo when running `devimpact sync`."
       );
     } else {
-      console.log(`✓ Found ${repos.length} repos where you have write access.`);
+      console.log(`✓ Found ${repos.length} repos where you have access.`);
 
       await postAvailableRepos(repos);
 
