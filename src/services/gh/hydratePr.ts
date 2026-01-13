@@ -4,7 +4,7 @@ import {
   getPullReviews,
   getPullReviewComments,
   getPullRequestEvents,
-} from "../gh/pulls";
+} from "./pulls";
 import {
   GitHubPRCommit,
   GitHubPRFile,

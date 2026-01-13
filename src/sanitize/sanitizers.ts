@@ -5,7 +5,7 @@ import {
   GitHubReviewComment,
   GitHubSearchPullRequest,
   GitHubTimelineEvent,
-} from "../gh/types";
+} from "../services/gh/types";
 import { sanitizeText } from "./text";
 import {
   SanitizedPR,

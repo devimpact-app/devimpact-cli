@@ -1,59 +1,14 @@
-import { getCliStatus, postCliSync } from "./api";
-import { HydratedPr, hydratePullRequest } from "./gh/hydratePr";
-import { getRepository, RepoMetadata } from "./gh/repos";
-import { searchAuthoredPrs, searchReviewedPrs } from "./gh/search";
+import { getCliStatus, postCliSync } from "./services/api/endpoints";
+import { HydratedPr, hydratePullRequest } from "./services/gh/hydratePr";
+import { getRepository, RepoMetadata } from "./services/gh/repos";
+import { searchAuthoredPrs, searchReviewedPrs } from "./services/gh/search";
 
 const MAX_PRS_PER_BATCH = 25;
-
-export type GhEndpointTemplate = {
-  id: string;
-  description: string;
-  example: string;
-};
 
 export type Batch = {
   repo: RepoMetadata;
   pulls: HydratedPr[];
 };
-
-export const GH_ENDPOINTS: GhEndpointTemplate[] = [
-  {
-    id: "search_issues_prs",
-    description: "Search for authored PRs in a given repo over a time window",
-    example:
-      'gh api /search/issues -X GET -f q="is:pr author:YOUR_LOGIN repo:OWNER/REPO updated:>=ISO_DATE"',
-  },
-  {
-    id: "pulls_list_commits",
-    description: "List commits for a PR",
-    example:
-      "gh api repos/OWNER/REPO/pulls/PR_NUMBER/commits -X GET --paginate",
-  },
-  {
-    id: "pulls_list_files",
-    description: "List files touched in a PR",
-    example: "gh api repos/OWNER/REPO/pulls/PR_NUMBER/files -X GET --paginate",
-  },
-  {
-    id: "pulls_list_reviews",
-    description: "List code review submissions on a PR",
-    example:
-      "gh api repos/OWNER/REPO/pulls/PR_NUMBER/reviews -X GET --paginate",
-  },
-  {
-    id: "pulls_list_review_comments",
-    description: "List review comments (inline code comments) on a PR",
-    example:
-      "gh api repos/OWNER/REPO/pulls/PR_NUMBER/comments -X GET --paginate",
-  },
-  {
-    id: "issues_list_events",
-    description:
-      "List timeline-style events for a PR (requested reviewers, label changes, etc.)",
-    example:
-      "gh api repos/OWNER/REPO/issues/PR_NUMBER/events -X GET --paginate",
-  },
-];
 
 function chunkHydratedPrs(hydratedPrs: HydratedPr[]): HydratedPr[][] {
   const chunks: HydratedPr[][] = [];
