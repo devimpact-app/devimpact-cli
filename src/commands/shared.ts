@@ -1,4 +1,5 @@
 import { runCommand } from "../utils";
+import readline from "node:readline";
 
 export async function openInBrowser(url: string) {
   const platform = process.platform;
@@ -54,4 +55,36 @@ export function printExplain() {
     - commit messages
     - your GitHub PAT (we use gh auth only)
   `);
+}
+
+export function promptSelectAutosyncInterval(): Promise<null | number> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(
+      [
+        "",
+        "Enable autosync on this Mac? (recommended)",
+        "DevImpact will sync in the background when your computer is awake.",
+        "",
+        "  1) Every 2 hours (recommended)",
+        "  2) Every 1 hour",
+        "  3) Every 4 hours",
+        "  4) Manual (no autosync)",
+        "",
+        "Choice [1-4]: ",
+      ].join("\n"),
+      (answer) => {
+        rl.close();
+        const a = String(answer || "").trim();
+        if (a === "1") return resolve(120);
+        if (a === "2") return resolve(60);
+        if (a === "3") return resolve(240);
+        return resolve(null);
+      }
+    );
+  });
 }

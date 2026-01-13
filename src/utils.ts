@@ -102,3 +102,15 @@ export function writeJsonAtomic(filePath: string, data: unknown) {
   fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), "utf8");
   fs.renameSync(tmpPath, filePath);
 }
+
+export function writeAtomic(filePath: string, data: string) {
+  ensureDirExists(filePath);
+  const tmpPath = `${filePath}.${Date.now()}.tmp`;
+  fs.writeFileSync(tmpPath, data, "utf8");
+  fs.renameSync(tmpPath, filePath);
+}
+
+export function isMac() {
+  const platform = process.platform;
+  return platform === "darwin";
+}

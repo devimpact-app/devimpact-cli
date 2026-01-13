@@ -1,7 +1,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { isObject, safeIso, tryReadJson, writeJsonAtomic } from "./utils";
+import { isObject, safeIso, tryReadJson, writeJsonAtomic } from "../utils";
 
 const STATE_PATH = path.join(os.homedir(), ".devimpact", "state.json");
 

@@ -1,7 +1,7 @@
-import { getCliStatus, postCliSync } from "./services/api/endpoints";
-import { HydratedPr, hydratePullRequest } from "./services/gh/hydratePr";
-import { getRepository, RepoMetadata } from "./services/gh/repos";
-import { searchAuthoredPrs, searchReviewedPrs } from "./services/gh/search";
+import { getCliStatus, postCliSync } from "../api/endpoints";
+import { HydratedPr, hydratePullRequest } from "../gh/hydratePr";
+import { getRepository, RepoMetadata } from "../gh/repos";
+import { searchAuthoredPrs, searchReviewedPrs } from "../gh/search";
 
 const MAX_PRS_PER_BATCH = 25;
 
@@ -18,7 +18,7 @@ function chunkHydratedPrs(hydratedPrs: HydratedPr[]): HydratedPr[][] {
   return chunks;
 }
 
-export async function syncRepoBasic(params: {
+export async function syncRepo(params: {
   repoName: string;
   githubLogin: string;
   startISO: string;
@@ -61,12 +61,12 @@ export async function syncRepoBasic(params: {
   };
 }
 
-export type BasicSyncOptions = {
+export type SyncOptions = {
   repoOverrides?: string[];
   githubLogin: string;
 };
 
-export async function runBasicSync(options: BasicSyncOptions) {
+export async function runSync(options: SyncOptions) {
   const { repoOverrides, githubLogin } = options;
 
   console.log("DevImpact sync");
@@ -114,7 +114,7 @@ export async function runBasicSync(options: BasicSyncOptions) {
   for (const repoName of repos) {
     console.log(`Syncing repo: ${repoName}`);
 
-    const { hydratedPrs, repo } = await syncRepoBasic({
+    const { hydratedPrs, repo } = await syncRepo({
       repoName: repoName,
       githubLogin,
       startISO,
