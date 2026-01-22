@@ -27,6 +27,10 @@ const LOCK_PATH = path.join(
 const DEFAULT_INTERVAL_MINUTES = 120;
 const LOCK_STALE_MS = 1000 * 60 * 30; // 30 mins
 const MAX_BACKOFF_MINUTES = 60 * 6; // 6 hours
+const MAX_LOG_BYTES = 2 * 1024 * 1024; // 2MB
+const LOG_DIR = path.join(os.homedir(), ".devimpact", "logs");
+const OUT_LOG = path.join(LOG_DIR, "autosync.out.log");
+const ERR_LOG = path.join(LOG_DIR, "autosync.err.log");
 
 function nowIso() {
   return new Date().toISOString();
@@ -56,6 +60,36 @@ function computeBackoffUntil(consecutiveFailures: number): string {
     Math.pow(2, Math.max(1, consecutiveFailures))
   );
   return new Date(Date.now() + minutes * 60 * 1000).toISOString();
+}
+
+export function rotateLogIfNeeded(
+  logPath: string,
+  maxBytes: number,
+  maxRotations = 3
+) {
+  try {
+    if (!fs.existsSync(logPath)) return;
+
+    const stat = fs.statSync(logPath);
+    if (stat.size <= maxBytes) return;
+
+    // Shift older rotations: .2 -> .3, .1 -> .2
+    for (let i = maxRotations - 1; i >= 1; i--) {
+      const src = `${logPath}.${i}`;
+      const dest = `${logPath}.${i + 1}`;
+      if (fs.existsSync(src)) {
+        fs.renameSync(src, dest);
+      }
+    }
+
+    // Move current log -> .1
+    fs.renameSync(logPath, `${logPath}.1`);
+
+    // Create new empty log file
+    fs.writeFileSync(logPath, "");
+  } catch (err) {
+    console.warn("[autosync] log rotation failed:", err);
+  }
 }
 
 function shouldDebounceByInterval(params: {
@@ -109,6 +143,10 @@ export async function autosyncTick(): Promise<TickResult> {
     return { action: "skipped", reason: "no_config" };
   }
 
+  // Keeps log files capped in size
+  rotateLogIfNeeded(OUT_LOG, MAX_LOG_BYTES);
+  rotateLogIfNeeded(ERR_LOG, MAX_LOG_BYTES);
+
   const autosync = cfg.autosync;
   if (!autosync || autosync.enabled !== true) {
     return { action: "skipped", reason: "autosync_disabled" };
@@ -126,6 +164,7 @@ export async function autosyncTick(): Promise<TickResult> {
 
   const lock = acquireLockOrSkip();
   if (!lock.ok) {
+    console.log("Tick skipped");
     return { action: "skipped", reason: lock.reason };
   }
 

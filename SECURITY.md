@@ -6,7 +6,7 @@ All GitHub access happens **on your machine**, using the official `gh` CLI under
 
 The CLI runs commands equivalent to:
 
-- `gh api /search/issues` – to find PRs you authored or reviewed
+- `gh api /search/issues` – to find PRs you authored or reviewed or are requested on
 - `gh api /repos/{owner}/{repo}/pulls/{number}/commits` – to list commits
 - `gh api /repos/{owner}/{repo}/pulls/{number}/files` – to list files & sizes
 - `gh api /repos/{owner}/{repo}/pulls/{number}/reviews` – to list reviews

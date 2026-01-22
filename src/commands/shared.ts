@@ -36,7 +36,7 @@ export function printExplain() {
 
     When you run 'devimpact sync':
 
-    - Calls: gh api /search/issues … (list authored/reviewed PRs)
+    - Calls: gh api /search/issues … (list authored/reviewed/requested PRs)
     - Calls: gh api /repos/{owner}/{repo}/pulls/{number}/commits
     - Calls: gh api /repos/{owner}/{repo}/pulls/{number}/files
     - Calls: gh api /repos/{owner}/{repo}/pulls/{number}/reviews

@@ -54,7 +54,6 @@ export async function installLaunchdAutosyncJob(opts: {
   });
 
   writeAtomic(plistPath, xml);
-  console.log(`Wrote launchd plist: ${plistPath}`);
 
   // remove other process w/ same name
   const uid = process.getuid?.() ?? undefined;
@@ -73,12 +72,6 @@ export async function installLaunchdAutosyncJob(opts: {
     }
   } else {
     await tryLaunchctl(["load", plistPath]);
-  }
-
-  // Kick it off once to test
-  const ok = await tryLaunchctl(["kickstart", "-k", `${domain}/${label}`]);
-  if (!ok) {
-    await tryLaunchctl(["start", label]);
   }
 
   return {

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import fs from "fs";
 
-import { loadConfig, saveConfig } from "../../config/config";
+import { DevImpactConfig, loadConfig, saveConfig } from "../../config/config";
 import { isMac } from "../../utils";
 import { installLaunchdAutosyncJob } from "../../services/launchd/installLaunchdJob";
 import { promptSelectAutosyncInterval } from "../shared";
@@ -20,7 +20,7 @@ function ensureInstallId(existing?: string) {
   return existing ?? crypto.randomUUID();
 }
 
-export async function handleAutosyncEnable() {
+export async function handleAutosyncEnable(): Promise<DevImpactConfig> {
   const config = loadConfig();
   if (!config) {
     console.error("Need to run `devimpact init` first to set up the CLI.");
@@ -30,13 +30,13 @@ export async function handleAutosyncEnable() {
   if (!isMac()) {
     console.log("Autosync is only supported on macOS for beta.");
     console.log("You can still run: devimpact sync");
-    return;
+    return config;
   }
 
   const intervalMinutes = await promptSelectAutosyncInterval();
   if (intervalMinutes == null) {
     console.log("Cancelled.");
-    return;
+    return config;
   }
 
   const nodePath = realpathSafe(process.execPath);
@@ -71,7 +71,8 @@ export async function handleAutosyncEnable() {
   saveConfig(next);
 
   console.log("✅ Autosync enabled.");
-  console.log(`   Desired sync interval: ${intervalMinutes} minutes`);
-  console.log(`   Tick interval: ${TICK_INTERVAL_MINS} minutes`);
-  console.log(`   launchd label: ${meta.label}`);
+  console.log(`   Sync interval: ${intervalMinutes} minutes`);
+  console.log(`   Runs in the background when your Mac is awake`);
+
+  return next;
 }

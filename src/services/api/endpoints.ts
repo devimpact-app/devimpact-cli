@@ -40,7 +40,7 @@ export async function getCliStatus(): Promise<CliStatus> {
 
   try {
     const resp = await fetchJson<{ data: CliStatus }>(
-      `${DEVIMPACT_API_BASE}/api/cli/status?includeRepoNames=true`,
+      `${cfg.apiBaseUrl}/api/cli/status?includeRepoNames=true`,
       {
         headers: { "x-devimpact-cli-token": cfg.cliToken },
         timeoutMs: 20_000,

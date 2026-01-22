@@ -1,7 +1,7 @@
-import { loadConfig, saveConfig } from "../config/config";
+import { loadConfig } from "../config/config";
 import { runSync } from "../services/sync/runSync";
 import { isMac } from "../utils";
-import { promptSelectAutosyncInterval } from "./shared";
+import { handleAutosyncEnable } from "./autosync/enable";
 
 export async function handleSync(args: string[]) {
   const cliRepos: string[] = [];
@@ -26,36 +26,11 @@ export async function handleSync(args: string[]) {
   // Autosync only supported on mac for now
   if (!isMac()) return;
 
-  const autosync = config.autosync;
+  let autosync = config.autosync;
 
   if (!autosync) {
-    const interval = await promptSelectAutosyncInterval();
-    if (interval == null) {
-      saveConfig({
-        ...config,
-        autosync: {
-          enabled: false,
-          intervalMinutes: 120,
-        },
-      });
-
-      console.log(
-        "\nAutosync not enabled. You can enable later with: devimpact autosync enable\n"
-      );
-      return;
-    }
-    const next = {
-      ...config,
-      autosync: {
-        enabled: true,
-        intervalMinutes: interval,
-      },
-    } as typeof config;
-
-    saveConfig(next);
-
-    console.log(`\n✓ Autosync enabled (every ${interval} minutes).\n`);
-    // TODO: install launchd job here
+    const autosyncResp = await handleAutosyncEnable();
+    autosync = autosyncResp.autosync;
     return;
   }
 
