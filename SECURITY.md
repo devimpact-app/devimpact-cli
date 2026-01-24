@@ -16,15 +16,15 @@ The CLI runs commands equivalent to:
 ## What data leaves your machine
 
 When `devimpact sync` sends data to the DevImpact backend, it includes
-**only metadata and sanitized text**:
+**No code contents or diffs**:
 
 ### Pull requests
 
 We send:
 
 - PR number
-- title (sanitized)
-- body (sanitized - code blocks, long URLs, file paths stripped)
+- title
+- body
 - state (open/closed/merged)
 - timestamps (created/updated/merged)
 - author login

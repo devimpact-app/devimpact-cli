@@ -20,6 +20,6 @@ export interface GitHubPRFile {
   blob_url: string;
   raw_url: string;
   contents_url: string;
-  patch?: string; // Code diff (we don't need this, but it's available)
-  previous_filename?: string; // If renamed, what was the old name
+  patch?: string;
+  previous_filename?: string;
 }

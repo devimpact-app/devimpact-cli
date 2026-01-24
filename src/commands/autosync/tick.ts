@@ -135,6 +135,16 @@ function acquireLockOrSkip(): { ok: true } | { ok: false; reason: string } {
   }
 }
 
+function isConnectivityError(err: any) {
+  const code = err?.cause?.code ?? err?.code;
+  return (
+    code === "ECONNREFUSED" ||
+    code === "ENOTFOUND" ||
+    code === "ETIMEDOUT" ||
+    code === "EAI_AGAIN"
+  );
+}
+
 export async function autosyncTick(): Promise<TickResult> {
   const startedAt = nowIso();
 
@@ -215,6 +225,25 @@ export async function autosyncTick(): Promise<TickResult> {
     };
   } catch (err: any) {
     const finishedAt = nowIso();
+
+    // If connectivity error, don't use backoff
+    if (isConnectivityError(err)) {
+      const code = err?.cause?.code ?? err?.code ?? "fetch_failed";
+      console.log(`[autosync] connectivity issue (${code}); skipping`);
+
+      const state = loadState() ?? {};
+      state.lastErrorAt = finishedAt;
+      state.lastError = `connectivity:${code}`;
+      state.lastExitCode = 0;
+      saveState(state);
+
+      return {
+        action: "skipped",
+        reason: "connectivity_error",
+      };
+    }
+
+    // Otherwise, use backoff
     const state = loadState() ?? {};
     state.lastErrorAt = finishedAt;
     state.lastError = err?.message ? String(err.message) : String(err);

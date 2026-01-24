@@ -1,6 +1,6 @@
 /**
  * Sanitized PR commit metadata sent to the server.
- * No commit messages, no emails, no names, no URLs.
+ * No commit messages
  */
 export interface SanitizedPRCommit {
   sha: string;

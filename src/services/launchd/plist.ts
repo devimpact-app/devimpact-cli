@@ -2,13 +2,13 @@ import os from "os";
 import path from "path";
 
 export type LaunchdPlistOptions = {
-  label: string; // e.g. com.devimpact.autosync.<installId>
-  nodePath: string; // absolute: process.execPath
-  cliEntryPath: string; // absolute path to your JS entrypoint
-  startIntervalSeconds: number; // e.g. 900 for 15 minutes
-  logOutPath?: string; // absolute
-  logErrPath?: string; // absolute
-  env?: Record<string, string>; // optional env vars
+  label: string;
+  nodePath: string;
+  cliEntryPath: string;
+  startIntervalSeconds: number;
+  logOutPath?: string;
+  logErrPath?: string;
+  env?: Record<string, string>;
 };
 
 function xmlEscape(s: string) {

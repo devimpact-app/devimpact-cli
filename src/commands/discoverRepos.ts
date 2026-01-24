@@ -60,7 +60,7 @@ export async function handleRepoDiscovery() {
     }
   } catch (err) {
     console.error(
-      "⚠️ Could not scan or upload repo metadata. This is optional — you can still configure repos manually with --repo."
+      "⚠️ Could not scan or upload repo metadata. This is optional — you can still configure repos manually with devimpact sync --repo <repo-name>."
     );
     console.error(err instanceof Error ? err.message : String(err));
   }

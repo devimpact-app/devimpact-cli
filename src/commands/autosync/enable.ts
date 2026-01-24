@@ -6,6 +6,8 @@ import { isMac } from "../../utils";
 import { installLaunchdAutosyncJob } from "../../services/launchd/installLaunchdJob";
 import { promptSelectAutosyncInterval } from "../shared";
 
+// Tick is more often to catch periods of asleep
+// It still debounces to user setting when called
 const TICK_INTERVAL_MINS = 10;
 
 function realpathSafe(p: string) {
@@ -46,8 +48,6 @@ export async function handleAutosyncEnable(): Promise<DevImpactConfig> {
 
   console.log("Installing launchd job for DevImpact autosync…");
   const meta = await installLaunchdAutosyncJob({
-    // Tick is more often to catch periods of asleep
-    // It still debounces to user setting when called
     intervalMinutes: TICK_INTERVAL_MINS,
     installId,
     cliEntryPath,

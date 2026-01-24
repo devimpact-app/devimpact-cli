@@ -1,3 +1,4 @@
+import { mapWithConcurrency } from "../../utils";
 import { getCliStatus, postCliSync } from "../api/endpoints";
 import { HydratedPr, hydratePullRequest } from "../gh/hydratePr";
 import { getRepository, RepoMetadata } from "../gh/repos";
@@ -60,8 +61,13 @@ export async function syncRepo(params: {
 
   const uniquePrs = Array.from(byNumber.values());
 
-  const hydrated = await Promise.all(
-    uniquePrs.map((pr) => hydratePullRequest(repoName, pr))
+  const prHydrateConcurrency = Number(
+    process.env.DEVIMPACT_HYDRATE_CONCURRENCY ?? 5
+  );
+  const hydrated = await mapWithConcurrency(
+    uniquePrs,
+    prHydrateConcurrency,
+    async (pr) => hydratePullRequest(repoName, pr)
   );
 
   return {

@@ -49,7 +49,6 @@ export function sanitizePR(pr: GitHubSearchPullRequest): SanitizedPR {
     title:
       sanitizeText(pr.title, { maxLength: 200, stripNewlines: true }) ?? "",
     body: sanitizeText(pr.body, { maxLength: 2000 }),
-
     user: pr.user ? { login: pr.user.login } : null,
     labels: pr.labels.map((label) =>
       pick(label, ["name", "color", "description"] as const)

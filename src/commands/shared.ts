@@ -22,6 +22,8 @@ export function printHelp() {
       devimpact sync                                  Sync recent GitHub activity
       devimpact discover-repos                        Discover repos you have access to, so you can select in your DevImpact account
       devimpact explain                               See what data DevImpact accesses
+      devimpact autosync-enable                       Enable regular sync of GitHub activity at preferred interval
+      devimpact autosync-disable                      Disable autosync if it was turned on
       devimpact --version
 
     Examples:
@@ -45,10 +47,10 @@ export function printExplain() {
 
     We send to DevImpact backend:
 
-    - PR metadata (number, title, sanitized body, timestamps, author login)
+    - PR metadata (number, title, body, timestamps, author login)
     - File metadata (filename, additions/deletions)
     - Commit metadata (sha, author login, timestamp, html_url)
-    - Review & comment bodies after sanitization
+    - Review & comment bodies
 
     We never send:
     - code or diff contents
