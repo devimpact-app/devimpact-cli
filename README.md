@@ -41,16 +41,14 @@ The token is hashed locally and never stored in plain text.
 Use the sync command to fetch GitHub pull request data and push it to your DevImpact account:
 
 ```sh
-devimpact sync --repo owner/repo
+devimpact sync
 ```
 
-You can provide multiple repositories
+You can provide repositories manually if you only want to sync those
 
 ```sh
 devimpact sync --repo org/frontend --repo org/api --repo org/mobile
 ```
-
-If you use the same repos regularly, the CLI will remember them.
 
 # Permissions and privacy
 
@@ -73,7 +71,7 @@ No other GitHub data is accessed.
 You can inspect or delete your local DevImpact config at:
 
 ```sh
-~/.config/devimpact/config.json
+~/.devimpact/config.json
 ```
 
 # Uninstall

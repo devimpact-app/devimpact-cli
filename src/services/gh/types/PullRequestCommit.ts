@@ -6,7 +6,6 @@
 export interface GitHubPRCommit {
   sha: string;
   node_id: string;
-
   commit: {
     message: string;
     author: {
@@ -20,7 +19,6 @@ export interface GitHubPRCommit {
       date?: string;
     } | null;
   };
-
   author:
     | {
         login: string;
@@ -29,7 +27,6 @@ export interface GitHubPRCommit {
       }
     | null
     | Record<string, never>;
-
   committer:
     | {
         login: string;
@@ -37,9 +34,5 @@ export interface GitHubPRCommit {
       }
     | null
     | Record<string, never>;
-
   html_url: string;
-
-  // Note: No stats or files in this response!
-  // You need to fetch individual commit for that
 }

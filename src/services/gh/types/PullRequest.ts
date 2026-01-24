@@ -15,7 +15,6 @@ export interface GitHubSearchPullRequest {
   state: string;
   locked: boolean;
   repoFullName: string;
-
   user: {
     login: string;
     id: number;
@@ -27,7 +26,6 @@ export interface GitHubSearchPullRequest {
     site_admin: boolean;
     user_view_type?: string;
   } | null;
-
   labels: Array<{
     id?: number;
     node_id?: string;
@@ -37,17 +35,14 @@ export interface GitHubSearchPullRequest {
     default?: boolean;
     description?: string | null;
   }>;
-
   assignee: {
     login: string;
     id: number;
   } | null;
-
   assignees?: Array<{
     login: string;
     id: number;
   }> | null;
-
   milestone: {
     id: number;
     number: number;
@@ -55,12 +50,10 @@ export interface GitHubSearchPullRequest {
     description: string | null;
     state: "open" | "closed";
   } | null;
-
   comments: number;
   created_at: string;
   updated_at: string;
   closed_at: string | null;
-
   author_association:
     | "COLLABORATOR"
     | "CONTRIBUTOR"
@@ -70,10 +63,7 @@ export interface GitHubSearchPullRequest {
     | "MEMBER"
     | "NONE"
     | "OWNER";
-
   draft?: boolean;
-
-  // PR-specific fields (only present when type=pr)
   pull_request?: {
     url: string | null;
     html_url: string | null;
@@ -81,8 +71,6 @@ export interface GitHubSearchPullRequest {
     patch_url: string | null;
     merged_at?: string | null;
   };
-
-  // URLs
   url: string;
   repository_url: string;
   labels_url: string;
@@ -90,11 +78,7 @@ export interface GitHubSearchPullRequest {
   events_url: string;
   html_url: string;
   timeline_url?: string;
-
-  // Search-specific
   score: number;
-
-  // Reactions
   reactions?: {
     url: string;
     total_count: number;
@@ -107,7 +91,6 @@ export interface GitHubSearchPullRequest {
     rocket: number;
     eyes: number;
   };
-
   active_lock_reason?: string | null;
   performed_via_github_app?: any | null;
   state_reason?: string | null;

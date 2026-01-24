@@ -20,7 +20,7 @@ export interface GitHubReview {
     id: number;
     avatar_url: string;
   } | null;
-  body: string | null; // Overall review comment (can be empty for COMMENTED state)
+  body: string | null;
   state: string;
   html_url: string;
   pull_request_url: string;

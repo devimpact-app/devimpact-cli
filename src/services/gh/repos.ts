@@ -30,17 +30,14 @@ export async function getRepository(repo: string): Promise<RepoMetadata> {
     name: data.name,
     fullName: data.full_name,
     htmlUrl: data.html_url,
-
     private: !!data.private,
     fork: !!data.fork,
     archived: !!data.archived,
     visibility:
       (data.visibility as RepoMetadata["visibility"]) ??
       (data.private ? "private" : "public"),
-
     defaultBranch: data.default_branch ?? "main",
     primaryLanguage: data.language ?? null,
-
     createdAt: data.created_at ?? null,
     pushedAt: data.pushed_at ?? null,
   };

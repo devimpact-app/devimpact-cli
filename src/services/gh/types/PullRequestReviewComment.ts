@@ -17,13 +17,11 @@ export interface GitHubReviewComment {
   commit_id: string;
   original_commit_id: string;
   in_reply_to_id?: number; // If replying to another comment
-
   user: {
     login: string;
     id: number;
     avatar_url: string;
   };
-
   body: string; // The actual comment text
   created_at: string;
   updated_at: string;
@@ -38,8 +36,6 @@ export interface GitHubReviewComment {
     | "MEMBER"
     | "NONE"
     | "OWNER";
-
-  // Line information (where in the file)
   line?: number; // Current line number
   original_line?: number; // Original line number
   start_line?: number | null; // For multi-line comments

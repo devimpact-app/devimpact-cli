@@ -48,3 +48,33 @@ export async function searchReviewedPrs(params: {
 
   return res.items as GitHubSearchPullRequest[];
 }
+
+export async function searchReviewRequestedPrs(params: {
+  repo: string;
+  reviewer: string;
+  startISO: string;
+}): Promise<GitHubSearchPullRequest[]> {
+  const q = [
+    "is:pr",
+    `repo:${params.repo}`,
+    `review-requested:${params.reviewer}`,
+    `-reviewed-by:${params.reviewer}`,
+    `updated:>=${params.startISO}`,
+  ].join(" ");
+
+  const res = await ghJson([
+    "/search/issues",
+    "-X",
+    "GET",
+    "-f",
+    `q=${q}`,
+    "-f",
+    "sort=updated",
+    "-f",
+    "order=desc",
+    "-f",
+    "per_page=100",
+  ]);
+
+  return res.items as GitHubSearchPullRequest[];
+}
