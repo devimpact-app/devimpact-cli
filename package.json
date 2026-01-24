@@ -9,6 +9,11 @@
     "build": "tsc",
     "start": "ts-node src/index.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devimpact-app/devimpact-cli"
+  },
+  "homepage": "https://github.com/devimpact-app/devimpact-cli",
   "keywords": [],
   "author": "",
   "license": "MIT",
