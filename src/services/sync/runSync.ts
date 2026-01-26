@@ -8,19 +8,47 @@ import {
   searchReviewRequestedPrs,
 } from "../gh/search";
 
-const MAX_PRS_PER_BATCH = 25;
-
 export type Batch = {
   repo: RepoMetadata;
   pulls: HydratedPr[];
 };
 
-function chunkHydratedPrs(hydratedPrs: HydratedPr[]): HydratedPr[][] {
-  const chunks: HydratedPr[][] = [];
-  for (let i = 0; i < hydratedPrs.length; i += MAX_PRS_PER_BATCH) {
-    chunks.push(hydratedPrs.slice(i, i + MAX_PRS_PER_BATCH));
+const MAX_BATCH_BYTES = 400 * 1024;
+
+function bytes(obj: any) {
+  return Buffer.byteLength(JSON.stringify(obj), "utf8");
+}
+
+export function chunkHydratedPrsBySize(hydrated: HydratedPr[]) {
+  const batches: HydratedPr[][] = [];
+  let batch: HydratedPr[] = [];
+  let batchBytes = 0;
+
+  for (const hydratedPr of hydrated) {
+    const sz = bytes(hydratedPr);
+
+    // Send just one PR if singlehandedly above limit
+    if (sz > MAX_BATCH_BYTES) {
+      if (batch.length) batches.push(batch);
+      batches.push([hydratedPr]);
+      batch = [];
+      batchBytes = 0;
+      continue;
+    }
+
+    // Otherwise add to existing batch or send if at max
+    if (batchBytes + sz > MAX_BATCH_BYTES) {
+      batches.push(batch);
+      batch = [hydratedPr];
+      batchBytes = sz;
+    } else {
+      batch.push(hydratedPr);
+      batchBytes += sz;
+    }
   }
-  return chunks;
+
+  if (batch.length) batches.push(batch);
+  return batches;
 }
 
 export async function syncRepo(params: {
@@ -143,7 +171,7 @@ export async function runSync(options: SyncOptions) {
           `Pushing metadata from ${repoName} to DevImpact backend...`
         );
 
-        const batches = chunkHydratedPrs(hydratedPrs);
+        const batches = chunkHydratedPrsBySize(hydratedPrs);
 
         for (let i = 0; i < batches.length; i++) {
           const pullsBatch = batches[i];
