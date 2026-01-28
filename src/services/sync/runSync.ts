@@ -88,6 +88,9 @@ export async function syncRepo(params: {
   }
 
   const uniquePrs = Array.from(byNumber.values());
+  if (uniquePrs.length > 0) {
+    console.log(`  Preparing ${uniquePrs.length} PRs…`);
+  }
 
   const prHydrateConcurrency = Number(
     process.env.DEVIMPACT_HYDRATE_CONCURRENCY ?? 5
@@ -112,7 +115,7 @@ export type SyncOptions = {
 export async function runSync(options: SyncOptions) {
   const { repoOverrides, githubLogin } = options;
 
-  console.log("DevImpact sync");
+  console.log("DevImpact: syncing your selected GitHub activity…");
 
   try {
     const status = await getCliStatus();
@@ -134,30 +137,22 @@ export async function runSync(options: SyncOptions) {
 
     if (!repos.length) {
       console.error(
-        "No repositories have been selected yet.\n" +
-          "\n" +
-          "→ First, visit your DevImpact repo selection page:\n" +
-          "     https://devimpact.app/onboarding/repos\n" +
-          "   Choose the repos where you do most of your work, then try syncing again.\n" +
-          "\n" +
-          "If you prefer to sync a specific repo directly, you can bypass selection with:\n" +
-          "   devimpact sync --repo owner/repo\n" +
-          "\n" +
-          "Example:\n" +
-          "   devimpact sync --repo myorg/service-api\n"
+        "No repos are selected yet.\n\n" +
+          "Pick repos here:\n" +
+          "  https://devimpact.app/onboarding/repos\n\n" +
+          "Or sync one repo directly:\n" +
+          "  devimpact sync --repo owner/repo\n"
       );
       process.exit(1);
     }
 
     console.log(
-      `Syncing DevImpact data from ${startISO} to ${endISO} for repos: ${repos.join(
-        ", "
-      )}`
+      `Time window: ${startISO} → ${endISO}\nRepos: ${repos.join(", ")}\n`
     );
 
     let pendingBatch: Batch | null = null;
     for (const repoName of repos) {
-      console.log(`Syncing repo: ${repoName}`);
+      console.log(`\n• ${repoName}`);
 
       const { hydratedPrs, repo } = await syncRepo({
         repoName: repoName,
@@ -165,11 +160,9 @@ export async function runSync(options: SyncOptions) {
         startISO,
       });
 
-      console.log(`Hydrated ${hydratedPrs.length} PRs from ${repoName}\n`);
+      console.log(`  PR metadata ready for upload`);
       if (hydratedPrs.length > 0) {
-        console.log(
-          `Pushing metadata from ${repoName} to DevImpact backend...`
-        );
+        console.log(`  Syncing your PR metadata...`);
 
         const batches = chunkHydratedPrsBySize(hydratedPrs);
 

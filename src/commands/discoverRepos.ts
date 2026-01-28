@@ -38,8 +38,8 @@ function promptToOpenRepoSelection() {
 
 export async function handleRepoDiscovery() {
   console.log(
-    "\n🔍 Scanning your GitHub repos via gh to help you choose what to sync…\n" +
-      "For this step, we only collect lightweight metadata (org/repo name, visibility, last pushed time).\n"
+    "\n🔍 Looking up your GitHub repos so you can pick which ones to sync.\n" +
+      "This step only uses repo names and basic metadata.\n"
   );
 
   try {
@@ -47,20 +47,20 @@ export async function handleRepoDiscovery() {
 
     if (!repos.length) {
       console.log(
-        "⚠️ No writable repositories were found via gh. You can still pass --repo when running `devimpact sync`."
+        "⚠️ No repositories were found via gh. You can still pass --repo when running `devimpact sync`."
       );
     } else {
       console.log(`✓ Found ${repos.length} repos where you have access.`);
 
       await postAvailableRepos(repos);
 
-      console.log("✓ Sent repo metadata to DevImpact");
+      console.log("✓ Repo list ready");
 
       promptToOpenRepoSelection();
     }
   } catch (err) {
     console.error(
-      "⚠️ Could not scan or upload repo metadata. This is optional — you can still configure repos manually with devimpact sync --repo <repo-name>."
+      "⚠️ Could not check repo metadata. This is optional — you can still configure repos manually with devimpact sync --repo <repo-name>."
     );
     console.error(err instanceof Error ? err.message : String(err));
   }
